@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+version_regex='[1-9]\.[0-9]+\.[0-9]'
+alpine_ver=3.15
+image=kinghrothgar/terraform
+platforms=linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7,linux/386
+
+versions=$(curl -s https://releases.hashicorp.com/terraform/ | sed -nE 's/.*>terraform_('$version_regex')<\/a>/\1/p' | sort -V)
+
+for v in $(echo $versions); do
+    echo "INFO: building $v"
+    docker buildx build --push \
+        --platform $platforms \
+        --build-arg TERRAFORM_VER=$v \
+        --build-arg ALPINE_VER=$alpine_ver \
+        --tag $image:$v . &
+    exit
+done
